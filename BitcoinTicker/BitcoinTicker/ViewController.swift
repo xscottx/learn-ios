@@ -65,7 +65,7 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
                     self.updateBitcoinData(json: bitcoinJSON)
                     
                 } else {
-                    print("Error: \(response.result.error)")
+                    print("Error: \(String(describing: response.result.error))")
                     self.bitcoinPriceLabel.text = "Connection Issues"
                 }
         }
