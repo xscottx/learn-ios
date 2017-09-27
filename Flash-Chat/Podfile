@@ -8,6 +8,7 @@ target 'Flash Chat' do
   # Pods for Flash Chat
   pod 'Firebase', '~>3.17'
   pod 'Firebase/Auth'
+  pod 'GoogleSignIn'
   pod 'Firebase/Database'
   pod 'SVProgressHUD'
   pod 'ChameleonFramework'

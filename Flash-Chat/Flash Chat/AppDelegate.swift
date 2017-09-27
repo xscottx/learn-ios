@@ -20,11 +20,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         //TODO: Initialise and Configure your Firebase here:
         FIRApp.configure()
         
+        
         return true
     }
 
-    
-    
     
     
     func applicationWillResignActive(_ application: UIApplication) {
