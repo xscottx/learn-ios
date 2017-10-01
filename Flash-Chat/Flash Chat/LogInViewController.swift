@@ -52,11 +52,12 @@ class LogInViewController: UIViewController, GIDSignInUIDelegate, GIDSignInDeleg
         print("credential: \(credential)")
         
         FIRAuth.auth()?.signIn(with: credential) { (user, error) in
+            SVProgressHUD.dismiss()
             if error != nil {
                 print(error!)
             }
             else {
-                SVProgressHUD.dismiss()
+                
                 self.performSegue(withIdentifier: "goToChat", sender: self)
             }
         }
@@ -73,11 +74,11 @@ class LogInViewController: UIViewController, GIDSignInUIDelegate, GIDSignInDeleg
         
         //TODO: Log in the user
         FIRAuth.auth()?.signIn(withEmail: emailTextfield.text!, password: passwordTextfield.text!, completion: { (user, error) in
+            SVProgressHUD.dismiss()
             if error != nil {
                 print(error!)
             }
             else {
-                SVProgressHUD.dismiss()
                 self.performSegue(withIdentifier: "goToChat", sender: self)
             }
         })
