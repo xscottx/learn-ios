@@ -10,7 +10,7 @@ import Firebase
 import GoogleSignIn
 import SVProgressHUD
 
-class LogInViewController: UIViewController, GIDSignInUIDelegate, GIDSignInDelegate {
+class LogInViewController: UIViewController, GIDSignInDelegate, GIDSignInUIDelegate{
 
     //Textfields pre-linked with IBOutlets
     @IBOutlet var emailTextfield: UITextField!
@@ -20,9 +20,10 @@ class LogInViewController: UIViewController, GIDSignInUIDelegate, GIDSignInDeleg
     
     override func viewDidLoad() {
         super.viewDidLoad()
+       
+        GIDSignIn.sharedInstance().uiDelegate = self
         GIDSignIn.sharedInstance().clientID = FIRApp.defaultApp()?.options.clientID
         GIDSignIn.sharedInstance().delegate = self
-        GIDSignIn.sharedInstance().uiDelegate = self
 //        GIDSignIn.sharedInstance().signIn()
         
         signInButton.style = .wide
@@ -32,16 +33,18 @@ class LogInViewController: UIViewController, GIDSignInUIDelegate, GIDSignInDeleg
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-
+    
     func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
         return GIDSignIn.sharedInstance().handle(url,
                                                  sourceApplication:options[UIApplicationOpenURLOptionsKey.sourceApplication] as? String,
                                                  annotation: [:])
     }
+    
     func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
         SVProgressHUD.show()
         
-        if let error = error {
+        if (error) != nil {
+            SVProgressHUD.dismiss()
             print("failed to google sign in")
             return
         }
@@ -57,7 +60,7 @@ class LogInViewController: UIViewController, GIDSignInUIDelegate, GIDSignInDeleg
                 print(error!)
             }
             else {
-                
+                print("Logged in successfully!")
                 self.performSegue(withIdentifier: "goToChat", sender: self)
             }
         }
@@ -66,6 +69,12 @@ class LogInViewController: UIViewController, GIDSignInUIDelegate, GIDSignInDeleg
     
     func sign(_ signIn: GIDSignIn!, didDisconnectWith user: GIDGoogleUser!, withError error: Error!) {
         print("user: \(user) logged out")
+        let firebaseAuth = FIRAuth.auth()
+        do {
+            try firebaseAuth?.signOut()
+        } catch let signOutError as NSError {
+            print("Error signing out: %@", signOutError)
+        }
     }
     
     @IBAction func logInPressed(_ sender: AnyObject) {
