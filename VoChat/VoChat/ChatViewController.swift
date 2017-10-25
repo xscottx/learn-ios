@@ -6,12 +6,14 @@
 import UIKit
 import Firebase
 import ChameleonFramework
+import Alamofire
+import SwiftyJSON
 
 class ChatViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
     // Declare instance variables here
     var messageArray : [Message] = [Message]()
-    
+    let FCM_URL = "https://fcm.googleapis.com/fcm/send"
     
     // We've pre-linked the IBOutlets
     @IBOutlet var heightConstraint: NSLayoutConstraint!
@@ -24,21 +26,21 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //TODO: Set yourself as the delegate and datasource here:
+        // Set yourself as the delegate and datasource here:
         messageTableView.delegate = self
         messageTableView.dataSource = self
         
         
-        //TODO: Set yourself as the delegate of the text field here:
+        // Set yourself as the delegate of the text field here:
         messageTextfield.delegate = self
         
         
-        //TODO: Set the tapGesture here:
+        // Set the tapGesture here:
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tableViewTapped))
         messageTableView.addGestureRecognizer(tapGesture)
         
 
-        //TODO: Register your MessageCell.xib file here:
+        // Register your MessageCell.xib file here:
         messageTableView.register(UINib(nibName: "MessageCell", bundle: nil), forCellReuseIdentifier: "customMessageCell")
         
         configureTableView()
@@ -47,6 +49,8 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         
         messageTableView.separatorStyle = .none
         
+        // Subscribe to usaa labs topic
+        FIRMessaging.messaging().subscribe(toTopic: "/topics/usaalabs")
     }
 
     ///////////////////////////////////////////
@@ -55,7 +59,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     
     
-    //TODO: Declare cellForRowAtIndexPath here:
+    // Declare cellForRowAtIndexPath here:
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "customMessageCell", for: indexPath) as! CustomMessageCell
         
@@ -75,19 +79,19 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     
-    //TODO: Declare numberOfRowsInSection here:
+    // Declare numberOfRowsInSection here:
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return messageArray.count
     }
     
     
-    //TODO: Declare tableViewTapped here:
+    // Declare tableViewTapped here:
     func tableViewTapped() {
         messageTextfield.endEditing(true)
     }
     
     
-    //TODO: Declare configureTableView here:
+    // Declare configureTableView here:
     func configureTableView() {
         messageTableView.rowHeight = UITableViewAutomaticDimension
         messageTableView.estimatedRowHeight = 120
@@ -101,7 +105,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     
 
     
-    //TODO: Declare textFieldDidBeginEditing here:
+    // Declare textFieldDidBeginEditing here:
     func textFieldDidBeginEditing(_ textField: UITextField) {
         
         UIView.animate(withDuration: 0.5) {
@@ -112,7 +116,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     
     
-    //TODO: Declare textFieldDidEndEditing here:
+    // Declare textFieldDidEndEditing here:
     func textFieldDidEndEditing(_ textField: UITextField) {
         UIView.animate(withDuration: 0.5) {
             self.heightConstraint.constant = 50
@@ -126,15 +130,11 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     //MARK: - Send & Recieve from Firebase
     
-    
-    
-    
-    
     @IBAction func sendPressed(_ sender: AnyObject) {
         
         messageTextfield.endEditing(true)
         
-        //TODO: Send the message to Firebase and save it in our database
+        // Send the message to Firebase and save it in our database
         messageTextfield.isEnabled = false
         sendButton.isEnabled = false
         
@@ -150,13 +150,16 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
                 self.messageTextfield.isEnabled = true
                 self.sendButton.isEnabled = true
                 self.messageTextfield.text = ""
+                
+                // send notification
+                self.sendFcmMessage(url: self.FCM_URL, message: self.messageTextfield.text!)
             }
         }
         
         
     }
     
-    //TODO: Create the retrieveMessages method here:
+    // Create the retrieveMessages method here:
     func retrieveMessages() {
         let messagesDB = FIRDatabase.database().reference().child("Messages")
         messagesDB.observe(.childAdded, with: { (snapshot) in
@@ -176,13 +179,49 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         })
     }
     
-
+    //MARK: - Networking
+    /***************************************************************/
+    
+    //Write the sendFcmMessage method here:
+    func sendFcmMessage(url: String, message: String) {
+        let FCM_SERVER_KEY = "AAAAJHlWgyQ:APA91bGHh6YFioKjg0LPuE8s0Le6EkvzB5ZzXLsBlCLwQs2IhZ_GAFoUZtuKDkGDoRdKC3Ej7hDWB3Xohl1iuKN9IOD26WYzVxtxp9BGJTmUgQKj2XcBYvZ0udKpz8Pmb7BSfKnGkBUp"
+        let params : [String : Any] =
+            ["notification": [["title":"VoChat Notification"],["body":message]]]
+        let headers: HTTPHeaders = [
+            "Authorization": "key=\(FCM_SERVER_KEY)",
+            "Accept": "application/json"
+        ]
+        
+        Alamofire.request(url, method: .post, parameters: params, encoding: JSONEncoding.default, headers: headers).responseJSON {
+            response in
+            if response.result.isSuccess {
+                print("Send response: \(response)")
+            }
+            else {
+                print("Failed to send message.")
+            }
+        }
+//        Alamofire.request(url, method: .post, parameters: parameters).responseJSON {
+//            response in
+//            if response.result.isSuccess {
+//                let weatherJson : JSON = JSON(response.result.value!)
+//                print(weatherJson)
+//                self.updateWeatherData(json: weatherJson)
+//
+//            }
+//            else {
+//                self.cityLabel.text = "Connection Issues"
+//            }
+//        }
+    }
     
     
     
     @IBAction func logOutPressed(_ sender: AnyObject) {
+        // Unsubscribe to usaa labs topic
+        FIRMessaging.messaging().unsubscribe(fromTopic: "/topics/usaalabs")
         
-        //TODO: Log out the user and send them back to WelcomeViewController
+        // Log out the user and send them back to WelcomeViewController
         do {
             try FIRAuth.auth()?.signOut()
             print("User signed out")

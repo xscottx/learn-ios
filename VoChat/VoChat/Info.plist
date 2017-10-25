@@ -27,7 +27,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.156654535460-sbh83f20gil0o0ogmadripjgc0mitb9q</string>
+				<string>com.googleusercontent.apps.156654535460-eq24tikk4h80c0klcqsi7itmfbb6j08b</string>
 			</array>
 		</dict>
 	</array>
@@ -37,6 +37,10 @@
 	<string>NO</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UIRequiredDeviceCapabilities</key>
