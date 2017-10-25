@@ -186,7 +186,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     func sendFcmMessage(url: String, message: String) {
         let FCM_SERVER_KEY = "AAAAJHlWgyQ:APA91bGHh6YFioKjg0LPuE8s0Le6EkvzB5ZzXLsBlCLwQs2IhZ_GAFoUZtuKDkGDoRdKC3Ej7hDWB3Xohl1iuKN9IOD26WYzVxtxp9BGJTmUgQKj2XcBYvZ0udKpz8Pmb7BSfKnGkBUp"
         let params : [String : Any] =
-            ["notification": [["title":"VoChat Notification"],["body":message]]]
+            ["to": "/topics/usaalabs", "data": ["message": message]]
         let headers: HTTPHeaders = [
             "Authorization": "key=\(FCM_SERVER_KEY)",
             "Accept": "application/json"
@@ -201,18 +201,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
                 print("Failed to send message.")
             }
         }
-//        Alamofire.request(url, method: .post, parameters: parameters).responseJSON {
-//            response in
-//            if response.result.isSuccess {
-//                let weatherJson : JSON = JSON(response.result.value!)
-//                print(weatherJson)
-//                self.updateWeatherData(json: weatherJson)
-//
-//            }
-//            else {
-//                self.cityLabel.text = "Connection Issues"
-//            }
-//        }
     }
     
     
